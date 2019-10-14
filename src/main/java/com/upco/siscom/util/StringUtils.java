@@ -5,16 +5,23 @@
  */
 package com.upco.siscom.util;
 
+import java.text.Normalizer;
+
 /**
  *
  * @author felps
  */
 public class StringUtils {
-    public static String capitalize(String original) {
-        if (original == null || original.length() <= 0) {
-            return original;
+    public static String capitalize(String str) {
+        if (str == null || str.length() <= 0) {
+            return str;
         }
         
-        return original.substring(0, 1).toUpperCase() + original.substring(1);
+        return str.substring(0, 1).toUpperCase() + str.substring(1);
+    }
+    
+    public static String deAccent(String str) {
+        return Normalizer.normalize(str, Normalizer.Form.NFD)
+                         .replaceAll("[^\\p{ASCII}]", "");
     }
 }

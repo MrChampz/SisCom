@@ -10,27 +10,23 @@ import com.upco.siscom.model.bean.Produto;
 import com.upco.siscom.model.dao.ComandaDAO;
 import com.upco.siscom.model.dao.ProdutoDAO;
 import com.upco.siscom.util.DateTimeUpdater;
+import com.upco.siscom.util.PrinterUtils;
 import com.upco.siscom.util.StringUtils;
-import java.awt.Container;
-import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
-import java.awt.event.FocusAdapter;
 import java.awt.event.KeyEvent;
-import java.text.DateFormat;
+import java.io.IOException;
 import java.text.DecimalFormat;
-import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import javax.print.PrintException;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.JComponent;
 import javax.swing.JOptionPane;
 import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
-import javax.swing.plaf.metal.MetalComboBoxUI;
 import javax.swing.table.DefaultTableModel;
-import javax.swing.text.JTextComponent;
 
 /**
  *
@@ -49,6 +45,7 @@ public class TelaNovaComanda extends javax.swing.JFrame {
     
     // Valor total da comanda
     double valorTotal;
+    DecimalFormat valorTotalFmt;
     
     /**
      * Creates new form NewOrderScreen
@@ -56,6 +53,9 @@ public class TelaNovaComanda extends javax.swing.JFrame {
     public TelaNovaComanda() {
         // Inicializa a lista de produtos
         produtosComanda = new LinkedHashMap<>();
+        
+        // Inicializa o formator do valor total
+         valorTotalFmt = new DecimalFormat("#0.00");
         
         // Carrega os produtos da db
         carregaProdutos();
@@ -548,7 +548,7 @@ public class TelaNovaComanda extends javax.swing.JFrame {
         });
         
         // Formata e exibe o valor
-        lbTotal.setText(new DecimalFormat("#.##").format(valorTotal));
+        lbTotal.setText(valorTotalFmt.format(valorTotal));
     }
     
     private void resetaCamposProduto() {
@@ -619,7 +619,25 @@ public class TelaNovaComanda extends javax.swing.JFrame {
             Comanda comanda = new Comanda(produtosComanda);
             dao.create(comanda);
 
-            // TODO: Imprime as comandas
+            // Se tudo der certo, imprime a comanda
+            imprimeComanda();
+            
+            int in = JOptionPane.showConfirmDialog(
+                null,
+                "Retire a comanda e pressione ENTER",
+                "Imprimir segunda via",
+                JOptionPane.DEFAULT_OPTION,
+                JOptionPane.INFORMATION_MESSAGE,
+                null
+            );
+            
+            if (in == JOptionPane.OK_OPTION) {
+                // Imprime a segunda via
+                imprimeComanda();
+            }
+            
+            // Reseta o estado da tela
+            novaComanda();
         } else {
             JOptionPane.showMessageDialog(
                 null, "A comanda precisa ter pelo menos um produto!"
@@ -627,8 +645,57 @@ public class TelaNovaComanda extends javax.swing.JFrame {
         }
     }
     
+    // TODO: Desacoplar código!
+    private void imprimeComanda() {
+        var wrapper = new Object() { String str = ""; };
+        
+        byte[] SEXP = { 0x1B, 'W', '1' };
+        byte[] EEXP = { 0x1B, 'W', '0' };
+        byte[] SBOL = { 0x1B, 'E' };
+        byte[] EBOL = { 0x1B, 'F' };
+        
+        wrapper.str = "   SISCOM - 1000GRAU RESTAURANTE E LANCHONETE   \n\r" + 
+                      "------------------------------------------------\n\r" +
+                      new String(SBOL) + new String(SEXP) +
+                      "        COMANDA         \n\r\n\r" +
+                      new String(EEXP) + new String(EBOL) +
+                      "COD.      QTD.    DESCRICAO                     \n\r" +
+                      "------------------------------------------------\n\r";
+        
+        String dataHora = lbData.getText() + " " + lbHora.getText();
+        
+        produtosComanda.forEach((p, qtd) -> {
+            wrapper.str += String.format("%6s", p.getCodigo()) + "    " +
+                           String.format("%-7s", qtd) + " " +
+                           StringUtils.deAccent(p.getDescricao()) + "\n\r";
+        });
+        
+        wrapper.str += "------------------------------------------------\n\r" +
+                       new String(SBOL) + "TOTAL" + new String(EBOL) +
+                       String.format("%43s", valorTotalFmt.format(valorTotal)) +
+                       "------------------------------------------------\n\r" +
+                       dataHora + "\n\r" +
+                       "UpCO SISCOM v1.0\n\r" +
+                       "\n\r\n\r\f\f";
+        
+        try {
+            PrinterUtils.print(wrapper.str);
+        } catch (PrintException ex) {
+            JOptionPane.showMessageDialog(
+                null, "Erro ao imprimir comanda!", "Erro", JOptionPane.ERROR_MESSAGE
+            );
+            ex.printStackTrace();
+        } catch (IOException ex) {
+            JOptionPane.showMessageDialog(
+                null, "Erro ao encontrar impressora!", "Erro", JOptionPane.ERROR_MESSAGE
+            );
+            ex.printStackTrace();
+        }
+    }
+    
     private void novaComanda() {
         produtosComanda.clear();
+        atualizaTotal();
         atualizaTBProdutos();
         resetaCamposProduto();
     }

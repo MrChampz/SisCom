@@ -9,6 +9,7 @@ import com.upco.siscom.model.bean.Produto;
 import com.upco.siscom.model.dao.ProdutoDAO;
 import java.text.NumberFormat;
 import java.text.ParseException;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JOptionPane;
@@ -22,12 +23,14 @@ public class TelaNovoProduto extends javax.swing.JFrame {
     private static final String TAG = TelaNovoProduto.class.getName();
     
     private Searchable searchable;
+    private List<Produto> produtos;
     
     /**
      * Creates new form TelaNovoProduto
      */
-    public TelaNovoProduto(Searchable searchable) {
+    public TelaNovoProduto(Searchable searchable, List<Produto> produtos) {
         this.searchable = searchable;
+        this.produtos = produtos;
         initComponents();
     }
 
@@ -165,14 +168,33 @@ public class TelaNovoProduto extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void btSalvarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btSalvarActionPerformed
-        ProdutoDAO dao = new ProdutoDAO();
+        try {
+            ProdutoDAO dao = new ProdutoDAO();
         
-        String codigo = tfCod.getText();
-        String porcao = tfPorcao.getText();
-        String precoStr = tfPreco.getText();
-        String descricao = taDescricao.getText();
-        
-        //verificaCampos();
+            String codigo = tfCod.getText();
+            String descricao = taDescricao.getText();
+            String porcao = tfPorcao.getText();
+            
+            // Converte o preço de String para double
+            NumberFormat fmt = NumberFormat.getInstance();
+            double preco = fmt.parse(tfPreco.getText()).doubleValue();
+            
+            // Verifica os campos, e se tiver tudo certo: salva o produto
+            if (verificaCampos(codigo, descricao, porcao, preco)) {
+                // Salva o produto
+                Produto produto = new Produto(codigo, descricao, porcao, preco);
+                dao.create(rootPane, produto);
+                searchable.add(produto);
+                produtos.add(produto);
+            }
+        } catch (ParseException ex) {
+            Logger.getLogger(TAG).log(Level.SEVERE, null, ex);
+        }
+    }//GEN-LAST:event_btSalvarActionPerformed
+
+    private boolean verificaCampos(
+        String codigo,String descricao, String porcao, double preco
+    ) {
         if (codigo.isBlank()) {
             JOptionPane.showMessageDialog(
                 rootPane,
@@ -180,8 +202,9 @@ public class TelaNovoProduto extends javax.swing.JFrame {
                 "Novo Produto",
                 JOptionPane.INFORMATION_MESSAGE
             );
-            return;
+            return false;
         }
+        
         if (descricao.isBlank()) {
             JOptionPane.showMessageDialog(
                 rootPane,
@@ -189,32 +212,22 @@ public class TelaNovoProduto extends javax.swing.JFrame {
                 "Novo Produto",
                 JOptionPane.INFORMATION_MESSAGE
             );
-            return;
+            return false;
         }
-        if (precoStr.isBlank()) {
+        
+        if (preco <= 0.0) {
             JOptionPane.showMessageDialog(
                 rootPane,
                 "Preço inválido! Digite um válido.",
                 "Novo Produto",
                 JOptionPane.INFORMATION_MESSAGE
             );
-            return;
+            return false;
         }
         
-        try {
-            // Converte o preço de String para double
-            NumberFormat fmt = NumberFormat.getInstance();
-            double preco = fmt.parse(precoStr).doubleValue();
-            
-            // Salva o produto
-            Produto produto = new Produto(codigo, descricao, porcao, preco);
-            dao.create(rootPane, produto);
-            searchable.add(produto);
-        } catch (ParseException ex) {
-            Logger.getLogger(TAG).log(Level.SEVERE, null, ex);
-        }
-    }//GEN-LAST:event_btSalvarActionPerformed
-
+        return true;
+    }
+    
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btSalvar;
     private javax.swing.JScrollPane jScrollPane1;

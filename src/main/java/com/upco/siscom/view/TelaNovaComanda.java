@@ -725,7 +725,7 @@ public class TelaNovaComanda extends javax.swing.JFrame {
     }
     
     private void abreNovoProduto() {
-        new TelaNovoProduto(searchable).setVisible(true);
+        new TelaNovoProduto(searchable, produtosDb).setVisible(true);
     }
     
     private void abreSobre() {

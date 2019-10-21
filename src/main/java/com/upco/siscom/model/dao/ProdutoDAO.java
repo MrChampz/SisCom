@@ -7,13 +7,12 @@ package com.upco.siscom.model.dao;
 
 import com.upco.siscom.connection.ConnectionFactory;
 import com.upco.siscom.model.bean.Produto;
+import java.awt.Component;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Timestamp;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -26,7 +25,8 @@ import javax.swing.JOptionPane;
 public class ProdutoDAO {
     private static final String TAG = ProdutoDAO.class.getName();
     
-    public void create(Produto p) {
+    // TODO: Substituir parent por um listener, assim, desacoplando o código
+    public void create(Component parent, Produto p) {
         Connection conn = ConnectionFactory.getConnection();
         PreparedStatement stmt = null;
         
@@ -42,9 +42,17 @@ public class ProdutoDAO {
             
             stmt.executeUpdate();
             
-            JOptionPane.showMessageDialog(null, "Produto salvo com sucesso!");
+            JOptionPane.showMessageDialog(
+                parent,
+                "Produto salvo com sucesso!", "Novo Produto",
+                JOptionPane.INFORMATION_MESSAGE
+            );
         } catch (SQLException ex) {
-            JOptionPane.showMessageDialog(null, "Erro ao salvar produto!");
+            JOptionPane.showMessageDialog(
+                parent,
+                "Erro ao salvar produto!", "Erro",
+                JOptionPane.ERROR_MESSAGE
+            );
             Logger.getLogger(TAG).log(Level.SEVERE, null, ex);
         } finally {
             ConnectionFactory.closeConnection(conn, stmt);

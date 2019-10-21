@@ -44,5 +44,9 @@ public class ProdutoSearchable implements Searchable<Produto, String> {
         
         return founds;
     }
-    
+
+    @Override
+    public void add(Produto produto) {
+        this.produtos.add(produto);
+    }
 }

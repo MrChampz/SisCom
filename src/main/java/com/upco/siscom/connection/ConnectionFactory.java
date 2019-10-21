@@ -29,7 +29,11 @@ public class ConnectionFactory {
         try {
             return DriverManager.getConnection(URL, USER, PASSWD);
         } catch(SQLException ex) {
-            JOptionPane.showMessageDialog(null, "Erro na conexão com o banco!");
+            JOptionPane.showMessageDialog(
+                null,
+                "Erro na conexão com o banco!", "Erro",
+                JOptionPane.ERROR_MESSAGE
+            );
             throw new RuntimeException("Erro na conexão com o banco: ", ex);
         }
     }

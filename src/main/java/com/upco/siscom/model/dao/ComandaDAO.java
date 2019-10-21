@@ -59,9 +59,17 @@ public class ComandaDAO {
             // Retorna ao estado anterior
             conn.setAutoCommit(true);
             
-            JOptionPane.showMessageDialog(null, "Comanda salva com sucesso!");
+            JOptionPane.showMessageDialog(
+                null,
+                "Comanda salva com sucesso!", "Nova Comanda",
+                JOptionPane.INFORMATION_MESSAGE
+            );
         } catch (SQLException ex) {
-            JOptionPane.showMessageDialog(null, "Erro ao salvar comanda!");
+            JOptionPane.showMessageDialog(
+                null,
+                "Erro ao salvar comanda!", "Erro",
+                JOptionPane.ERROR_MESSAGE
+            );
             Logger.getLogger(TAG).log(Level.SEVERE, null, ex);
         } finally {
             ConnectionFactory.closeConnection(conn, stmt);

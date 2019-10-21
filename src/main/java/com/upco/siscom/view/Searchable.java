@@ -22,4 +22,6 @@ public interface Searchable<E, V> {
      * @return A Collection of items of type E.
      */
     public Collection<E> search(V value);
+    
+    public void add(E item);
 }

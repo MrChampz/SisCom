@@ -12,6 +12,7 @@ import java.text.Normalizer;
  * @author felps
  */
 public class StringUtils {
+    
     public static String capitalize(String str) {
         if (str == null || str.length() <= 0) {
             return str;
@@ -23,5 +24,29 @@ public class StringUtils {
     public static String deAccent(String str) {
         return Normalizer.normalize(str, Normalizer.Form.NFD)
                          .replaceAll("[^\\p{ASCII}]", "");
+    }
+    
+    public static String centerText(String str, int columns) {
+        String spaces = "";
+        int strSize = str.length();
+        
+        if (!str.isBlank() && columns > strSize) {
+            int count = (columns - strSize) / 2;
+            for (int i = 0; i < count; i++) {
+                spaces += " ";
+            }
+        }
+        
+        return spaces + str + spaces;
+    }
+    
+    public static String stroke(int columns) {
+        String stroke = "";
+        
+        for (int i = 0; i < columns; i++) {
+            stroke += "-";
+        }
+        
+        return stroke;
     }
 }
